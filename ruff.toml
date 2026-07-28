@@ -1,0 +1,47 @@
+target-version = "py312"
+line-length = 88
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[lint]
+select = [
+    "F",      # pyflakes
+    "E",      # pycodestyle (includes E501 line length)
+    "W",      # pycodestyle warnings
+    "I",      # import sorting
+    "B",      # bugbear
+    "UP",     # pyupgrade
+    "SIM",    # simplify
+    "C4",     # comprehensions
+    "RUF",    # Ruff-specific rules
+    "D",      # docstrings
+]
+
+ignore = [
+    "D100",   # missing module docstrings
+    "D104",   # missing package docstrings
+    "D203",   # conflicts with D211
+    "D213",   # conflicts with D212
+    "D101",
+]
+
+fixable = ["ALL"]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.isort]
+combine-as-imports = true
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true

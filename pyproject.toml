@@ -1,0 +1,46 @@
+[project]
+name = "mnemosyne"
+version = "0.1.0"
+description = "Local-first knowledge management system with semantic knowledge graph, exposed via MCP."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.0",
+    "alembic>=1.13",
+    "sqlalchemy>=2.0", # alembic's own connection handling only -- see migrations/env.py
+    "markdown-it-py>=4.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mnemosyne*"]
+
+[tool.docformatter]
+recursive = true
+wrap-summaries = 88
+wrap-descriptions = 88
+pre-summary-newline = true
+close-quotes-on-newline = true
+
+[tool.poe.tasks]
+format = [
+    "docformatter .",
+    "ruff check . --fix",
+    "ruff format -",
+]
+
+[dependency-groups]
+dev = [
+    "alembic>=1.18.5",
+    "docformatter>=1.7.8",
+    "poethepoet>=0.48.0",
+    "pytest>=9.1.1",
+    "ruff>=0.15.22",
+]
