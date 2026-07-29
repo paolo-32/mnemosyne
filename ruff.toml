@@ -29,6 +29,7 @@ ignore = [
     "D104",   # missing package docstrings
     "D203",   # conflicts with D211
     "D213",   # conflicts with D212
+    "I001",   # annoying as fuck
     "D101",
 ]
 
