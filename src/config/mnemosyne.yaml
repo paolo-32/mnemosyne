@@ -1,0 +1,10 @@
+tika:
+  endpoint: http://localhost:9998
+
+ollama:
+  endpoint: http://localhost:11434
+  embedding_model: embeddinggemma
+  extraction_model: gemma4
+
+raw_store:
+  db_path: ./data/raw_store.sqlite
