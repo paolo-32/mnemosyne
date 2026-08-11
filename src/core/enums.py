@@ -1,10 +1,9 @@
-"""Domain enums. No I/O, no dependencies on stores/connectors/pipeline.
-"""
+"""Domain enums. No I/O, no dependencies on stores/connectors/pipeline."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class ProcessingStatus(str, Enum):
+class ProcessingStatus(StrEnum):
     """Canonical Document processing_status (§5, §18.4)."""
 
     QUEUED = "queued"
@@ -13,7 +12,7 @@ class ProcessingStatus(str, Enum):
     FAILED = "failed"
 
 
-class SupersessionStatus(str, Enum):
+class SupersessionStatus(StrEnum):
     """Applies to Documents, Chunks, embeddings, and MENTIONS edges (§16.2, §16.3).
 
     Deliberately never applies to Entities themselves (§16.4) -- entities have
@@ -24,14 +23,14 @@ class SupersessionStatus(str, Enum):
     SUPERSEDED = "superseded"
 
 
-class IngestionMode(str, Enum):
+class IngestionMode(StrEnum):
     """§18.2 -- a behavioral mode, not a connector category."""
 
     DISCRETE = "discrete"
     CONTINUOUS = "continuous"
 
 
-class ItemStatus(str, Enum):
+class ItemStatus(StrEnum):
     """Per-item outcome reported by a connector invocation (§18.5).
 
     Deliberately no PARTIAL value -- "was this invocation partial" is a
@@ -46,14 +45,14 @@ class ItemStatus(str, Enum):
     REMOVED = "removed"
 
 
-class Cardinality(str, Enum):
+class Cardinality(StrEnum):
     """Relation-type schema property, not per-instance (§14.4.1)."""
 
     FUNCTIONAL = "functional"
     MULTI_VALUED = "multi_valued"
 
 
-class EdgeType(str, Enum):
+class EdgeType(StrEnum):
     """The graph's two structurally distinct edge types (§13.1)."""
 
     MENTIONS = "mentions"

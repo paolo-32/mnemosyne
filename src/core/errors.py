@@ -14,13 +14,11 @@ class DocumentNotFoundError(MnemosyneError):
 
 
 class NoOpIngestionError(MnemosyneError):
-    """Raised (or caught internally) when an incoming change_token matches
-    the last-known token for a source_id -- unchanged content, no new
-    version should be created (§16.2, §18.3).
+    """Raised when an incoming change token matches the latest known token.
+
+    Unchanged content does not create a new version (§16.2, §18.3).
     """
 
 
 class UnknownConnectorError(MnemosyneError):
-    """Raised when connector-state operations reference a connector_id with
-    no prior registered state.
-    """
+    """Raised when connector state is requested for an unknown connector."""
