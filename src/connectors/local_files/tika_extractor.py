@@ -9,6 +9,7 @@ from .models import ExtractedContent
 
 class Extractor(Protocol):
     def extract(self, path: Path) -> ExtractedContent:
+        """Extract content and metadata from a file."""
         ...
 
 
