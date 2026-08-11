@@ -1,4 +1,4 @@
-"""initial documents table
+"""initial documents table.
 
 Revision ID: 0001
 Revises:
@@ -14,6 +14,7 @@ depends_on = None
 
 
 def upgrade() -> None:
+    """Create the initial documents table and its indexes."""
     op.execute(
         """
         CREATE TABLE documents (
@@ -45,6 +46,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Drop the documents table and its indexes."""
     op.execute("DROP INDEX IF EXISTS idx_documents_status")
     op.execute("DROP INDEX IF EXISTS idx_documents_source_id_version")
     op.execute("DROP INDEX IF EXISTS idx_documents_source_id_status")
