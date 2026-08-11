@@ -1,5 +1,9 @@
 # daemon/cli.py
 from pathlib import Path
+<<<<<<< Updated upstream
+=======
+from typing import Annotated
+>>>>>>> Stashed changes
 
 import typer
 
@@ -16,10 +20,20 @@ app = typer.Typer()
 
 @app.command()
 def ingest_local(
+<<<<<<< Updated upstream
     folder: Path = typer.Argument(..., help="Root directory to ingest."),
     config_path: Path = typer.Option(
         Path("config/mnemosyne.yaml"), help="Path to config YAML."
     ),
+=======
+    folder: Annotated[
+        Path,
+        typer.Argument(help="Root directory to ingest")],
+    config_path: Annotated[
+        Path,
+        typer.Option(help="Path to config YAML.")
+    ] = Path("config/mnemosyne.yaml"),
+>>>>>>> Stashed changes
 ) -> None:
     """Ingest all files under FOLDER into the Raw Store (discrete mode)."""
     settings = Settings.load(config_path)
@@ -36,16 +50,33 @@ def ingest_local(
         connector_state_repo=connector_state_repo,
     )
 
+<<<<<<< Updated upstream
     counts = {status: 0 for status in ItemStatus}
 
     for result in connector.run():
         if result.status == ItemStatus.SUCCESS:
+=======
+    counts: dict[ItemStatus, int] = dict.fromkeys(ItemStatus, 0)
+
+    for result in connector.run():
+        if result.status == ItemStatus.SUCCESS:
+            if result.document is None:
+                raise RuntimeError(
+                    f"Successfull result has no document: {result.source_id}"
+                    )
+>>>>>>> Stashed changes
             try:
                 raw_store_repo.ingest(result.document)
                 counts[ItemStatus.SUCCESS] += 1
             except NoOpIngestionError:
                 counts[ItemStatus.UNCHANGED] += 1
+<<<<<<< Updated upstream
         elif result.status in (ItemStatus.FAILED_TRANSIENT, ItemStatus.FAILED_PERMANENT):
+=======
+        elif result.status in (
+            ItemStatus.FAILED_TRANSIENT, ItemStatus.FAILED_PERMANENT
+            ):
+>>>>>>> Stashed changes
             counts[result.status] += 1
             typer.echo(f"[{result.status.value}] {result.source_id}: {result.error}")
         else:
@@ -63,4 +94,8 @@ def ingest_local(
 
 
 if __name__ == "__main__":
+<<<<<<< Updated upstream
     app()
+=======
+    app()
+>>>>>>> Stashed changes
