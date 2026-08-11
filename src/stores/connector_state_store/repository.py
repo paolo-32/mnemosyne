@@ -54,7 +54,7 @@ class ConnectorStateStoreRepository:
         # plan 3) -- schema created inline rather than routed through
         # alembic for Phase 0. Revisit if/when this file gets its own
         # migration history alongside the Raw Store's.
-        self._conn.execute(_SCHEMA)
+        self._conn.executescript(_SCHEMA)
         self._conn.commit()
 
     def close(self) -> None:
