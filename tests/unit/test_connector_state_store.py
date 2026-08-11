@@ -7,12 +7,14 @@ from src.stores.connector_state_store.repository import ConnectorStateStoreRepos
 
 @pytest.fixture()
 def repo(tmp_path):
+    """Provide a temporary connector state store for testing."""
     repository = ConnectorStateStoreRepository(tmp_path / "connector_state.sqlite")
     yield repository
     repository.close()
 
 
 def test_cursor_roundtrip(repo):
+    """Store and retrieve a connector cursor."""
     assert repo.get_cursor("scraper_x") is None
 
     now = datetime.now(UTC)
@@ -24,6 +26,7 @@ def test_cursor_roundtrip(repo):
 
 
 def test_cursor_overwritten_on_each_call(repo):
+    """Replace the previous cursor when setting it again."""
     t1 = datetime.now(UTC)
     repo.set_cursor("scraper_x", "page=1", t1)
     t2 = t1 + timedelta(seconds=30)
@@ -33,7 +36,12 @@ def test_cursor_overwritten_on_each_call(repo):
 
 
 def test_heartbeat_not_stuck_when_recent(repo):
-    repo.declare_heartbeat_expectations("watcher", expected_interval_seconds=300, grace_period_seconds=60)
+    """Report a recent heartbeat as not stuck."""
+    repo.declare_heartbeat_expectations(
+        "watcher",
+        expected_interval_seconds=300,
+        grace_period_seconds=60
+        )
     now = datetime.now(UTC)
     repo.report_heartbeat("watcher", now)
 
@@ -41,7 +49,12 @@ def test_heartbeat_not_stuck_when_recent(repo):
 
 
 def test_heartbeat_stuck_when_overdue(repo):
-    repo.declare_heartbeat_expectations("watcher", expected_interval_seconds=300, grace_period_seconds=60)
+    """Report a heartbeat as stuck when it exceeds the allowed interval."""
+    repo.declare_heartbeat_expectations(
+        "watcher",
+        expected_interval_seconds=300,
+        grace_period_seconds=60
+        )
     now = datetime.now(UTC)
     repo.report_heartbeat("watcher", now)
 
@@ -49,7 +62,8 @@ def test_heartbeat_stuck_when_overdue(repo):
 
 
 def test_discrete_connector_never_flagged_stuck(repo):
-    """No heartbeat expectations declared at all -- discrete-mode connectors
-    don't need this field (§18.2.2).
+    """No heartbeat expectations declared at all.
+
+    Discrete-mode connectors don't need this field (18.2.2).
     """
     assert repo.is_stuck("one_shot_importer", datetime.now(UTC)) is False
