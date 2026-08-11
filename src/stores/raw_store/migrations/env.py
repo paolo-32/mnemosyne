@@ -25,10 +25,12 @@ db_path = os.environ.get("MNEMOSYNE_RAW_STORE_DB")
 if db_path:
     config.set_main_option("sqlalchemy.url", f"sqlite:///{db_path}")
 
-target_metadata = None  # no ORM models to autogenerate against; migrations are hand-written
+# no ORM models to autogenerate against; migrations are hand-written
+target_metadata = None
 
 
 def run_migrations_offline() -> None:
+    """Run Alembic migrations without establishing a database connection."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -41,6 +43,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run Alembic migrations using a live database connection."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

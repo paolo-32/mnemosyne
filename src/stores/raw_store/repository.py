@@ -1,6 +1,8 @@
-"""Raw Store repository. Plain sqlite3 -- no ORM. Alembic (configured
-separately in migrations/) owns schema evolution; this module only ever
-issues DML against tables that already exist.
+"""Raw Store repository.
+
+Plain sqlite3 -- no ORM.
+Alembic (configured separately in migrations/) owns schema evolution;
+this module only ever issues DML against tables that already exist.
 """
 
 from __future__ import annotations
@@ -37,12 +39,14 @@ def _row_to_document(row: sqlite3.Row) -> CanonicalDocument:
 
 class RawStoreRepository:
     def __init__(self, db_path: Path | str) -> None:
+        """Initialize the repository and connect to the SQLite database."""
         self._db_path = Path(db_path)
         self._conn = sqlite3.connect(self._db_path)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
 
     def close(self) -> None:
+        """Close the connection to the SQL database."""
         self._conn.close()
 
     # -- internal helpers ---------------------------------------------
@@ -81,6 +85,7 @@ class RawStoreRepository:
     # -- reads -----------------------------------------------------------
 
     def get_document(self, document_id: str) -> CanonicalDocument:
+        """Return a document by ID or raise DocumentNotFoundError if missing."""
         row = self._conn.execute(
             "SELECT * FROM documents WHERE id = ?", (document_id,)
         ).fetchone()
@@ -89,8 +94,9 @@ class RawStoreRepository:
         return _row_to_document(row)
 
     def get_latest_current_version(self, source_id: str) -> CanonicalDocument | None:
-        """Backing the connector contract's core lookup (§18.2.1): a
-        connector's two-tier cheap-filter pattern needs the last-known
+        """Backing the connector contract's core lookup (18.2.1).
+
+        A connector's two-tier cheap-filter pattern needs the last-known
         change_token for a source_id, derived from here rather than
         duplicated in the connector-state store.
         """
@@ -105,6 +111,7 @@ class RawStoreRepository:
         return _row_to_document(row) if row else None
 
     def list_versions(self, source_id: str) -> list[CanonicalDocument]:
+        """Return all document versions for a source in ascending order."""
         rows = self._conn.execute(
             "SELECT * FROM documents WHERE source_id = ? ORDER BY version ASC",
             (source_id,),
@@ -112,8 +119,10 @@ class RawStoreRepository:
         return [_row_to_document(r) for r in rows]
 
     def as_of(self, source_id: str, timestamp: datetime) -> CanonicalDocument | None:
-        """Point-in-time reconstruction (§16.5) -- the latest version whose
-        ingestion_timestamp is <= the given timestamp, current or not.
+        """Point-in-time reconstruction (§16.5).
+
+        The latest version whose ingestion_timestamp
+        is <= the given timestamp, current or not.
         """
         row = self._conn.execute(
             """
@@ -128,20 +137,19 @@ class RawStoreRepository:
     # -- writes ------------------------------------------------------------
 
     def ingest(self, doc: CanonicalDocument) -> CanonicalDocument:
-        """Applies the change-detection + supersession decision from §18.3
-        and §16.2 in one place, so every connector category goes through
-        the same logic rather than reimplementing it:
+        """Apply change detection and supersession rules.
 
-          * no prior version for source_id -> insert as version 1
-          * change_token matches latest current version -> no-op, raises
-            NoOpIngestionError rather than creating a new row
-          * change_token differs -> new version, prior version marked
-            superseded, supersedes pointer set
+        This centralizes the change-detection and supersession logic so every
+        connector category follows the same behavior:
 
-        Caller is expected to have already assigned doc.id,
-        doc.ingestion_timestamp, and doc.version=1 (version is recomputed
-        here regardless, so a caller-supplied value for an existing
-        source_id is not trusted).
+        * No prior version for ``source_id``: insert as version 1.
+        * Matching ``change_token``: raise ``NoOpIngestionError``.
+        * Different ``change_token``: create a new version and supersede the
+          previous version.
+
+        The caller must already have assigned ``doc.id`` and
+        ``doc.ingestion_timestamp``. The version is recomputed here, so any
+        caller-supplied value for an existing ``source_id`` is not trusted.
         """
         latest = self.get_latest_current_version(doc.source_id)
 
@@ -153,7 +161,8 @@ class RawStoreRepository:
 
         if latest.change_token == doc.change_token:
             raise NoOpIngestionError(
-                f"source_id={doc.source_id!r} change_token unchanged; no new version created"
+                f"source_id={doc.source_id!r}"
+                "change_token unchanged; no new version created"
             )
 
         new_doc = doc.model_copy(
@@ -167,8 +176,9 @@ class RawStoreRepository:
         return new_doc
 
     def mark_superseded(self, document_id: str) -> None:
-        """Direct tombstone, e.g. for the `removed` item status (§18.5) --
-        the source is gone, so its current Document is superseded without
+        """Direct tombstone, e.g. for the `removed` item status (18.5).
+
+        The source is gone, so its current Document is superseded without
         a replacement version being created.
         """
         self._conn.execute(
