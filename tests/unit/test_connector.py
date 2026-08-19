@@ -151,7 +151,10 @@ def test_changed_content_reports_success_with_new_document(files_root, connector
 
     assert len(second) == 1
     assert second[0].status == ItemStatus.SUCCESS
-    assert second[0].document.raw_content == "version two, much longer content than before"
+    assert (
+        second[0].document.raw_content
+        == "version two, much longer content than before"
+        )
     assert second[0].document.change_token != first[0].document.change_token
 
 
