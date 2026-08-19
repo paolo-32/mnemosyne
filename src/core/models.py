@@ -11,7 +11,7 @@ import from here, never a LadybugDB or Qdrant type directly.
 from __future__ import annotations
 
 from datetime import datetime, UTC
-from typing import Any
+from typing import Any, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
@@ -90,6 +90,35 @@ class CanonicalDocument(BaseModel):
     supersedes: str | None = None  # prior version's document id
     status: SupersessionStatus = SupersessionStatus.CURRENT
 
+
+class DuplicateLink(BaseModel):
+    """A live duplicate relationship between two documents (As per 6.3, 6.3.1, 6.3.2).
+
+    One row per *dependent* document, a source_id with no row is, by definition,
+    a canonical root (6.3.2's union-find base case: absence of a link IS
+    "this is canonical", not a separate flag).
+
+    'linked_source_id' + 'linked_document_version' together pin the exact version
+    this link was last confirmed/path-compressed against, per 6.3.1's explicit
+    requirement to store "which version", not just a stable identity reference.
+
+    This mirrors the document_id/document_version split already used
+    by Chunk records (17.2) rather than inventing a new convention.
+    """
+    document_source_id: str
+    linked_source_id: str
+    linked_document_version: int
+    match_tier: Literal["exact_hash", "embedding_similarity"]
+    similarity_score: float | None = None
+    linked_at: datetime
+
+    @model_validator(mode="after")
+    def _check_similarity_score_shape(self) -> DuplicateLink:
+        if self.match_tier == "exact_hash" and self.similarity_score is not None:
+            raise ValueError("exact_hash links must not carry a similarity_score")
+        if self.match_tier == "embedding_similarity" and self.similarity_score is None:
+            raise ValueError("embedding_similarity links must carry a similarity_score")
+        return self
 
 # ---------------------------------------------------------------------------
 # Confidence fields (13.4)
